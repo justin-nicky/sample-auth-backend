@@ -22,14 +22,12 @@ export const registerUser = asyncHandler(async (req, res) => {
   })
   if (user) {
     res.status(201)
-    res
-      .cookie('token', generateToken(user._id), { httpOnly: true })
-      .json({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        isAdmin: user.isAdmin,
-      })
+    res.cookie('token', generateToken(user._id), { httpOnly: true }).json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      isAdmin: user.isAdmin,
+    })
   } else {
     res.status(400)
     throw new Error('Invalid user data')
@@ -42,11 +40,12 @@ export const registerUser = asyncHandler(async (req, res) => {
 export const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body
   const user = await User.findOne({ email })
-  if (user.isDisabled) {
-    res.status(401)
-    throw new Error('Not Authorized, Blocked User.')
-  }
+
   if (user) {
+    if (user.isDisabled) {
+      res.status(401)
+      throw new Error('Not Authorized, Blocked User.')
+    }
     if (!(await user.matchPassword(password))) {
       res.status(401)
       throw new Error('Incorrect Password.')
